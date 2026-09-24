@@ -266,6 +266,42 @@ td.n{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowra
 .startgrid .btn{display:flex;justify-content:space-between;align-items:center}
 .startgrid .btn small{font:500 13px/1 var(--body);opacity:.85}
 
+
+/* Tablero en vivo */
+.dash{background:linear-gradient(135deg,#1D2B45 0%,#27395B 100%);color:#fff;border-radius:16px;padding:14px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.dash::after{content:"";position:absolute;right:-40px;top:-40px;width:140px;height:140px;border-radius:50%;border:18px solid rgba(255,255,255,.05);pointer-events:none}
+.dash-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px}
+.dash-t{font:700 13px/1.1 var(--body);text-transform:uppercase;letter-spacing:.08em;opacity:.85}
+.seg{display:flex;background:rgba(255,255,255,.12);border-radius:99px;padding:3px;position:relative;z-index:1}
+.seg button{border:0;background:none;color:#fff;font:600 13px/1 var(--body);padding:7px 12px;border-radius:99px;cursor:pointer;opacity:.8}
+.seg button[aria-selected="true"]{background:#fff;color:#1D2B45;opacity:1}
+.dash-main{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:center}
+.dash .days{border:5px solid #2FA84F;cursor:pointer;padding:0;font:inherit}
+.dgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;position:relative;z-index:1}
+.dt{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-left:4px solid var(--tc);border-radius:8px;padding:6px 8px;cursor:pointer;min-width:0}
+.dt .dl{display:block;font:700 10.5px/1.1 var(--body);text-transform:uppercase;letter-spacing:.06em;opacity:.8}
+.dt b{display:block;font:700 22px/1.05 var(--display)}
+.dt small{display:block;font:500 11px/1.1 var(--mono);opacity:.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dash-foot{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:12px;opacity:.9}
+.dash-foot .lstat{flex:1;min-width:0}
+.rbtn{flex:none;width:34px;height:34px;border-radius:50%;border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.1);color:#fff;display:grid;place-items:center;cursor:pointer;padding:0}
+.rbtn svg{width:17px;height:17px}
+.rbtn.dark{border-color:var(--line);background:var(--surface);color:var(--cc)}
+.livebar{display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:13px;color:var(--muted);margin-bottom:6px}
+.livebar .lstat{flex:1;min-width:0}
+.dot{width:9px;height:9px;border-radius:50%;background:#A0A7B0;flex:none}
+.dot.on{background:#2FA84F;box-shadow:0 0 0 3px rgba(47,168,79,.2)}
+.incs{display:grid;gap:8px;margin-bottom:8px}
+.inc{display:grid;grid-template-columns:76px 1fr;gap:12px;background:var(--surface);border:1px solid var(--line);border-left:5px solid var(--tc);border-radius:10px;padding:10px 12px}
+.inc-l{text-align:center}
+.inc-l b{display:block;font:700 30px/1 var(--display);margin-top:6px;color:var(--tc)}
+.inc-l small{font-size:11.5px;color:var(--muted)}
+.inc-n{font-size:12.5px;color:var(--muted);font-weight:600}
+.inc-p{font-weight:700;margin:2px 0}
+.inc-d{font-size:14px}
+.src{font-size:13px;color:var(--muted)}
+:root[data-theme="dark"] .inc-l b{filter:brightness(1.6)}
+
 /* Láminas */
 .slides{display:grid;gap:14px}
 
@@ -346,15 +382,7 @@ const rel=(...n)=>`<div class="rel">Regla relacionada: ${n.map(k=>`<img src="${I
 const fig=(src,cap)=>`<figure class="fig" data-zoom="${cap}"><img src="${src}" alt="${cap}" loading="lazy"><figcaption>${cap}<b>Ampliar</b></figcaption></figure>`;
 
 const T=[
-{id:"incidentes",cat:"planta",ic:{s:"alert"},t:"Últimos incidentes en planta LPZ",s:"LTI, MTC, FAC y el último incidente ambiental",h:`
-<div class="tbl"><table><tr><th>Tipo</th><th>Persona / área</th><th>Fecha</th></tr>
-<tr><td><span class="pill" style="--pc:#A51D17">LTI</span></td><td><b>Heriberto Quispe</b> (Bodegas)<br>Fractura metatarso 2do dedo pie derecho</td><td class="n">09/02/2026</td></tr>
-<tr><td><span class="pill" style="--pc:#C4550F">MTC</span></td><td><b>Denis Patsi</b> (Distribución)<br>Golpe en región intercostal con mango de carrito</td><td class="n">22/07/2026</td></tr>
-<tr><td><span class="pill" style="--pc:#9A5C00">FAC</span></td><td><b>Miguel Laura</b> (Procesos)<br>Golpe y corte en pie, sector del talón, con peldaño de grada</td><td class="n">05/09/2026</td></tr>
-</table></div>
-<div class="key">LTI = lesión con tiempo perdido · MTC = caso con tratamiento médico · FAC = caso de primeros auxilios.</div>
-<h3>Último incidente ambiental LPZ</h3>
-<div class="card"><span class="pill" style="--pc:#9A5C00">MENOR</span> <b>(Bodegas)</b> Fuga de líquido hidráulico de montacargas <b>Nissan 8</b> · <span class="mono">05/09/2026</span></div>`},
+{id:"incidentes",cat:"planta",ic:{s:"alert"},t:"Incidentes y días sin eventos",s:"LTI, MTC, FAC y ADM por área · desde el Excel",h:`<div id="incLive"></div>`},
 
 {id:"imcr",cat:"planta",ic:{s:"mega"},t:"Últimos Call to Action (IMCR)",s:"5 fatalidades 2026 y la lección de cada una",h:`
 <p>Incidentes graves compartidos como Call to Action. Debajo de cada uno va la regla que salva vidas que aplica.</p>
@@ -645,7 +673,7 @@ const DATOS=[
 {c:"altura",i:"r6",n:"Altura y techos",r:[["Techo no frágil inseguro","≥ 150 kg/m²"],["Prioridad 1","Desde el suelo"],["Prioridad 2","Plataforma fija"],["Prioridad 3","Andamio / móvil"],["Prioridad 4","Escalera"],["Techos rojo, amarillo, verde","Todos con PT"]]},
 {c:"quim",i:"r11",n:"Químicos y cilindros",r:[["Cilindro a presión (gas)","40 psi a 21 °C"],["Cilindro a presión (líquido)","40 psi a 38 °C"],["Sustancia inflamable","Flash < 23 °C"],["Oxígeno",'Azul<span class="sw" style="background:#3E6FD8"></span>'],["Nitrógeno",'Verde<span class="sw" style="background:#22A34A"></span>'],["Argón",'Naranja<span class="sw" style="background:#F07E1E"></span>'],["CO₂",'Gris<span class="sw" style="background:#A6A6A6"></span>'],["Acetileno",'Negro<span class="sw" style="background:#111"></span>'],["GNV",'Amarillo<span class="sw" style="background:#F6E000"></span>'],["Norma de colores","NB 73007"]]},
 {c:"vida",i:"r2",n:"SIF",r:[["Matriz","3 × 3 (Sev × Prob)"],["Zona crítica","6 y 9"],["Severidad 3","Potencialmente SIF"],["Probabilidad 3","Cierto"]]},
-{c:"planta",i:"r1",n:"Últimos eventos LPZ",r:[["LTI · H. Quispe (Bodegas)","09/02/2026"],["MTC · D. Patsi (Distribución)","22/07/2026"],["FAC · M. Laura (Procesos)","05/09/2026"],["Ambiental menor · Nissan 8","05/09/2026"]]},
+{c:"planta",i:"r1",n:"Últimos eventos (Excel)",dyn:1,r:[]},
 {c:"emerg",i:"r4",n:"EME",r:[["Líder EME","Dalton Paniagua"],["Coordinador EME","Ruben Flores"],["Coordinador técnico","Raissa Rodriguez"],["Líder de brigada","Hernan Balboa V."],["Ayuda externa","Resp. SSPP LPZ"]]},
 {c:"amb",i:"ambiente",n:"Medio ambiente",r:[["Ratio agua 2026","1.500 lt/lt"],["Ratio energía total 2026","0.410 MJ/lt"],["Ratio vapor 2026","0.112 MJ/lt"],["Ratio energía eléctrica 2026","0.078 kWh/lt"],["Reciclabilidad","100 %"],["Cámara industrial","Rojo"],["Cámara pluvial","Amarillo"],["Cámara agua doméstica","Azul"]]},
 {c:"legal",i:"r5",n:"Fechas SSMA",r:[["Día del Agua","22 mar"],["Hora del Planeta","últ. sáb. mar"],["Día Mundial de la Seguridad","28 abr"],["Día Mundial del Reciclaje","17 may"],["Día Mundial del Medio Ambiente","05 jun"],["Día del Árbol","1 oct"]]}
@@ -705,7 +733,6 @@ const Q=[
 ["¿Quién es el Líder de brigada?","Hernan Balboa Valencia",["Rodrigo Castaño Quispe","Richard Ramos","Andrea Rodriguez"],"eme","Reemplazo: Rodrigo Castaño Quispe."],
 ["Coordinador técnico del EME","Raissa Rodriguez",["Ruben Flores","Dalton Paniagua","Richard Ramos"],"eme","Reemplazo: Andrea Rodriguez."],
 ["¿Qué hace el Coordinador de ayuda externa?","Contacta entidades externas y coordina su asignación",["Dirige la brigada interna","Determina la causa raíz","Apaga los equipos"],"eme","Es el Responsable de SSPP LPZ; reemplazo: oficial de turno."],
-["Último LTI en planta LPZ","Heriberto Quispe (Bodegas), fractura de metatarso, 09/02/2026",["Denis Patsi, 22/07/2026","Miguel Laura, 05/09/2026","Ninguno en 2026"],"incidentes",""],
 ["Último incidente ambiental LPZ","Fuga de líquido hidráulico del montacargas Nissan 8 (menor)",["Derrame de soda cáustica","Emisión del caldero","Descarga de efluentes"],"incidentes",""],
 ["Causa del IMCR 5 (05/08/2026)","Arranque inesperado por falta de aislamiento de energía",["Caída de altura","Colapso de racks","Aplastamiento por montacargas"],"imcr",""],
 ["Licencia ambiental equivale a…","DAA",["RAI","LASP","MAI"],"legalma",""],
@@ -766,6 +793,147 @@ function openLB(src,cap){
 function lbKey(e){if(e.key==="Escape")closeLB()}
 function closeLB(){const d=document.getElementById("lb");if(d)d.remove();document.removeEventListener("keydown",lbKey)}
 
+// ---------- Datos en vivo desde Google Sheets ----------
+const SHEET_ID="1l1Tg7_8gbcUxF60bKogPVfYsfxYfxOxPFu0oHBUdy90";
+const SHEET_URL="https://docs.google.com/spreadsheets/d/"+SHEET_ID+"/edit";
+const GID_INC="0", GID_C2A="421802360";
+const gvizUrl=gid=>"https://docs.google.com/spreadsheets/d/"+SHEET_ID+"/gviz/tq?tqx=out:json&headers=1&gid="+gid+"&t="+Date.now();
+const TIPOS=["FATALIDAD","LTI","MTC","FAC","ADM"];
+const TIPO_COLOR={FATALIDAD:"#5B0F0B",LTI:"#A51D17",MTC:"#C4550F",FAC:"#9A5C00",ADM:"#34425A"};
+const TIPO_NOMBRE={FATALIDAD:"Fatalidad",LTI:"Lesión con tiempo perdido",MTC:"Tratamiento médico",FAC:"Primeros auxilios",ADM:"Daño material"};
+
+function gvizParse(txt){
+  const a=txt.indexOf("{"),b=txt.lastIndexOf("}");
+  const j=JSON.parse(txt.slice(a,b+1));
+  if(j.status!=="ok")throw new Error("La hoja respondió con error");
+  const cols=j.table.cols.map(c=>(c.label||"").trim().toUpperCase());
+  const rows=(j.table.rows||[]).map(r=>(r.c||[]).map(c=>c?{v:c.v,f:c.f}:null));
+  return {cols,rows,types:j.table.cols.map(c=>c.type)};
+}
+function cellDate(c){
+  if(!c||c.v==null||c.v==="")return null;
+  const v=c.v;
+  if(typeof v==="string"){
+    let m=v.match(/^Date\((\d+),(\d+),(\d+)/);
+    if(m)return iso(+m[1],+m[2]+1,+m[3]);
+    m=v.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})/);
+    if(m)return iso(+m[3],+m[2],+m[1]);
+    return null;
+  }
+  if(typeof v==="number"&&v>30000&&v<80000){const d=new Date(Date.UTC(1899,11,30)+v*864e5);return iso(d.getUTCFullYear(),d.getUTCMonth()+1,d.getUTCDate())}
+  return null;
+}
+function iso(y,m,d){return y+"-"+String(m).padStart(2,"0")+"-"+String(d).padStart(2,"0")}
+const txt=c=>c&&c.v!=null?String(c.v).replace(/\s+/g," ").trim():"";
+function colIdx(cols,names,fallback){for(const n of names){const i=cols.indexOf(n);if(i>=0)return i}return fallback}
+
+function parseInc(t){
+  const iA=colIdx(t.cols,["AREA","ÁREA"],0),iT=colIdx(t.cols,["INCIDENTE","TIPO"],1),iF=colIdx(t.cols,["ULTIMA FECHA","ÚLTIMA FECHA","FECHA"],2),
+        iD=colIdx(t.cols,["DETALLE"],4),iP=colIdx(t.cols,["PERSONA"],5);
+  const out=[];
+  for(const r of t.rows){
+    const area=txt(r[iA]).toUpperCase(),tipo=txt(r[iT]).toUpperCase();
+    if(!area||!tipo||area==="AREA")continue;
+    const det=txt(r[iD]),per=txt(r[iP]);
+    out.push({area,tipo,fecha:cellDate(r[iF]),detalle:/^ningun[oa]?$/i.test(det)?"":det,persona:/^nadie$/i.test(per)?"":per});
+  }
+  return out;
+}
+function parseC2A(t){
+  const iN=colIdx(t.cols,["N","N°","NRO"],0),iC=colIdx(t.cols,["CALL TO ACTION"],1),iP=colIdx(t.cols,["PERSONA"],2),iF=colIdx(t.cols,["ULTIMA FECHA","ÚLTIMA FECHA","FECHA"],3);
+  const out=[];
+  for(const r of t.rows){const c=txt(r[iC]);if(!c||c.toUpperCase()==="CALL TO ACTION")continue;out.push({n:txt(r[iN]),titulo:c,persona:txt(r[iP]),fecha:cellDate(r[iF])})}
+  return out;
+}
+
+
+// Estado de los datos del Excel: copia incluida → copia guardada → en vivo
+const SNAP={"inc":[{"area":"PLANTA","tipo":"FATALIDAD","fecha":null,"detalle":"","persona":""},{"area":"PLANTA","tipo":"LTI","fecha":"2026-02-09","detalle":"Atrapamiento de pie con transpaleta en Bodegas CD La Paz, 2do metatarso pie derecho","persona":"Heriberto Quispe Flores"},{"area":"PLANTA","tipo":"MTC","fecha":"2026-09-17","detalle":"Atrixionamiento de pie en picking temporal de bodegas planta","persona":"Dennis Froilan Patsi Tancara"},{"area":"PLANTA","tipo":"FAC","fecha":"2026-09-23","detalle":"Torcedura de tobillo, manipulador de bodegas","persona":"Cristian Quispe"},{"area":"PLANTA","tipo":"ADM","fecha":"2026-09-14","detalle":"Daño en paneles cobertores de pilar de puerta de ingreso, camión 2842 GBK al descargar equipos de frío (Gerson Ramirez)","persona":"Camión placa 2842 GBK"},{"area":"CALIDAD","tipo":"FATALIDAD","fecha":null,"detalle":"","persona":""},{"area":"CALIDAD","tipo":"LTI","fecha":"2023-10-26","detalle":"Contusión rodilla derecha","persona":"Ruddy Contreras"},{"area":"CALIDAD","tipo":"MTC","fecha":"2023-10-26","detalle":"Contusión rodilla, golpes frontales.","persona":"Gloria Mamani, Sergio Alarcón, Carlos Lopez"},{"area":"CALIDAD","tipo":"FAC","fecha":"2024-04-02","detalle":"Golpe en lado derecho a la altura de la costilla","persona":"Genny Choqueticlla"},{"area":"CALIDAD","tipo":"ADM","fecha":"2026-05-03","detalle":"Rotura de cupla del grifo de lavamanos","persona":"Weimar Villegas"}],"c2a":[],"at":"2026-09-24"};
+let SD={inc:SNAP.inc,c2a:SNAP.c2a,at:null,src:"snap"};
+try{const c=JSON.parse(localStorage.getItem("ssmaH2.sheet")||"null");if(c&&c.inc&&c.inc.length){SD={inc:c.inc,c2a:c.c2a||[],at:c.at,src:"cache"}}}catch(e){}
+let area="PLANTA",loading=false,lastErr="";
+function localToday(){const n=new Date();return Date.UTC(n.getFullYear(),n.getMonth(),n.getDate())}
+function daysFrom(isoD){if(!isoD)return null;const [y,m,d]=isoD.split("-").map(Number);return Math.max(0,Math.round((localToday()-Date.UTC(y,m-1,d))/864e5))}
+function fmtD(isoD){if(!isoD)return "—";const [y,m,d]=isoD.split("-");return d+"/"+m+"/"+y}
+function fmtAt(ts){const d=new Date(ts);return d.toLocaleDateString("es-BO",{day:"2-digit",month:"2-digit"})+" "+d.toLocaleTimeString("es-BO",{hour:"2-digit",minute:"2-digit"})}
+function areas(){return [...new Set(SD.inc.map(r=>r.area))]}
+function rec(a,t){return SD.inc.find(r=>r.area===a&&r.tipo===t)}
+function statusTxt(){
+  if(loading)return "Actualizando desde Google Sheets…";
+  if(SD.src==="live")return "En vivo desde Google Sheets · "+fmtAt(SD.at);
+  if(SD.src==="cache")return "Última copia guardada · "+fmtAt(SD.at)+(lastErr?" · sin conexión a la hoja":"");
+  return "Copia del Excel al "+fmtD(SNAP.at)+(lastErr?" · no se pudo leer la hoja":"");
+}
+async function loadSheet(){
+  if(loading)return;loading=true;lastErr="";refreshLive();
+  try{
+    const [a,b]=await Promise.all([fetch(gvizUrl(GID_INC),{cache:"no-store"}).then(r=>{if(!r.ok)throw new Error(r.status);return r.text()}),
+      fetch(gvizUrl(GID_C2A),{cache:"no-store"}).then(r=>r.ok?r.text():"").catch(()=>"")]);
+    const inc=parseInc(gvizParse(a));if(!inc.length)throw new Error("Hoja vacía");
+    let c2a=[];try{if(b)c2a=parseC2A(gvizParse(b))}catch(e){}
+    SD={inc,c2a,at:Date.now(),src:"live"};
+    try{localStorage.setItem("ssmaH2.sheet",JSON.stringify(SD))}catch(e){}
+  }catch(e){lastErr=String(e&&e.message||e)}
+  loading=false;indexInc();refreshLive();
+}
+function refreshLive(){
+  const h=location.hash.slice(1);
+  if(h===""&&!query.trim()){const el=document.getElementById("dash");if(el){el.outerHTML=dashH();wireDash()}}
+  else if(h==="t.incidentes"){const el=document.getElementById("incLive");if(el){el.innerHTML=incBodyH();wireInc()}}
+  else if(h==="datos"){datos()}
+  document.querySelectorAll(".lstat").forEach(e=>e.textContent=statusTxt());
+}
+const REF='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.3-5.6"/><path d="M20 4v4.5h-4.5"/></svg>';
+
+function dashH(){
+  const L=rec(area,"LTI"),dL=L?daysFrom(L.fecha):null;
+  const small=["FATALIDAD","MTC","FAC","ADM"].map(t=>{const r=rec(area,t),d=r?daysFrom(r.fecha):null;
+    return `<div class="dt" style="--tc:${TIPO_COLOR[t]}"><span class="dl">${t==="FATALIDAD"?"Fatalidad":t}</span><b>${d==null?"—":d}</b><small>${d==null?"sin registro":fmtD(r.fecha)}</small></div>`}).join("");
+  return `<section class="dash" id="dash">
+   <div class="dash-top"><span class="dash-t">Días sin incidentes</span><div class="seg" role="tablist">${areas().map(a=>`<button role="tab" data-a="${a}" aria-selected="${a===area}">${a.charAt(0)+a.slice(1).toLowerCase()}</button>`).join("")}</div></div>
+   <div class="dash-main">
+    <button class="days" id="dgo" aria-label="Ver detalle de incidentes"><div><b>${dL==null?"—":dL}</b><span>días<br>sin LTI</span></div></button>
+    <div class="dgrid">${small}</div>
+   </div>
+   <div class="dash-foot"><span class="lstat">${statusTxt()}</span><button class="rbtn" id="rload" aria-label="Actualizar datos">${REF}</button></div>
+  </section>`;
+}
+function wireDash(){
+  document.querySelectorAll("#dash [data-a]").forEach(b=>b.onclick=()=>{area=b.dataset.a;refreshLive()});
+  document.getElementById("dgo").onclick=()=>go("t.incidentes");
+  document.querySelectorAll("#dash .dt").forEach(b=>b.onclick=()=>go("t.incidentes"));
+  document.getElementById("rload").onclick=loadSheet;
+}
+function incBodyH(){
+  let h=`<div class="livebar"><span class="dot${SD.src==="live"?" on":""}"></span><span class="lstat">${statusTxt()}</span><button class="rbtn dark" id="rload2" aria-label="Actualizar datos">${REF}</button></div>`;
+  for(const a of areas()){
+    h+=`<h3>${a.charAt(0)+a.slice(1).toLowerCase()}</h3><div class="incs">`;
+    for(const t of TIPOS){const r=rec(a,t);if(!r)continue;const d=daysFrom(r.fecha);
+      h+=`<div class="inc" style="--tc:${TIPO_COLOR[t]}"><div class="inc-l"><span class="pill" style="--pc:${TIPO_COLOR[t]}">${t==="FATALIDAD"?"FATAL":t}</span><b>${d==null?"—":d}</b><small>${d==null?"":"días"}</small></div>
+      <div class="inc-r"><div class="inc-n">${TIPO_NOMBRE[t]}${r.fecha?` · <span class="mono">${fmtD(r.fecha)}</span>`:""}</div>${r.persona?`<div class="inc-p">${esc(r.persona)}</div>`:""}<div class="inc-d">${r.detalle?esc(r.detalle):(r.fecha?"Sin detalle.":"Sin eventos registrados.")}</div></div></div>`}
+    h+=`</div>`;
+  }
+  if(SD.c2a.length){h+=`<h3>Call to Action del Excel</h3>`+SD.c2a.map(c=>`<div class="card"><span class="pill">${esc(c.n||"")}</span> ${c.fecha?`<span class="mono">${fmtD(c.fecha)}</span>`:""}<h4>${esc(c.titulo)}</h4>${c.persona?`<p>${esc(c.persona)}</p>`:""}</div>`).join("")}
+  h+=`<div class="key">LTI = lesión con tiempo perdido · MTC = caso con tratamiento médico · FAC = primeros auxilios · ADM = accidente con daño material.</div>
+  <h3>Último incidente ambiental LPZ</h3>
+  <div class="card"><span class="pill" style="--pc:#9A5C00">MENOR</span> <b>(Bodegas)</b> Fuga de líquido hidráulico de montacargas <b>Nissan 8</b> · <span class="mono">05/09/2026</span></div>
+  <p class="src">Los datos de incidentes salen de la hoja de Google Sheets. Al editar la hoja, toca el botón de actualizar.</p>`;
+  return h;
+}
+function wireInc(){const b=document.getElementById("rload2");if(b)b.onclick=loadSheet}
+function indexInc(){const t=T.find(x=>x.id==="incidentes");if(t)t.txt=norm(t.t+" "+t.s+" "+SD.inc.map(r=>r.area+" "+r.tipo+" "+r.persona+" "+r.detalle).join(" ")+" ambiental nissan montacargas")}
+function dynQ(){
+  const out=[];const pl=SD.inc.filter(r=>r.persona);
+  for(const r of pl){
+    if(r.tipo==="FATALIDAD")continue;
+    const others=shuffle([...new Set(pl.filter(x=>x.persona!==r.persona).map(x=>x.persona))]).slice(0,3);
+    if(others.length<3)continue;
+    const a=r.area.charAt(0)+r.area.slice(1).toLowerCase();
+    out.push([`Último ${r.tipo} en ${a}: ¿a quién le ocurrió?`,r.persona,others,"incidentes",`${fmtD(r.fecha)} · ${r.detalle}`]);
+  }
+  return out;
+}
+
 // ---------- vistas ----------
 function daysSince(y,m,d){const now=new Date();const a=Date.UTC(now.getFullYear(),now.getMonth(),now.getDate());return Math.max(0,Math.round((a-Date.UTC(y,m-1,d))/864e5))}
 function home(){
@@ -780,10 +948,7 @@ function home(){
 function drawList(){
   const R=document.getElementById("res");const q=norm(query.trim());
   if(!q){
-    let h=`<div class="hero">
-      <div class="days"><div><b>${daysSince(2026,2,9)}</b><span>días<br>sin LTI</span></div></div>
-      <div><div class="k">Último LTI</div><div class="v">09/02/2026 <small>· H. Quispe, Bodegas</small></div>
-      <div class="k">Último FAC</div><div class="v">05/09/2026 <small>· M. Laura, Procesos</small></div></div></div>
+    let h=dashH()+`
       <div class="chips">${Object.entries(CATS).map(([k,c])=>`<button class="cchip k-${k}" data-c="${k}">${CSHORT[k]}</button>`).join("")}</div>`;
     for(const [k,c] of Object.entries(CATS)){
       const items=T.filter(t=>t.cat===k);const d=items.filter(t=>done.has(t.id)).length;
@@ -791,6 +956,7 @@ function drawList(){
     }
     R.innerHTML=h;
     R.querySelectorAll("[data-c]").forEach(b=>b.onclick=()=>document.getElementById("c-"+b.dataset.c).scrollIntoView({behavior:"smooth"}));
+    wireDash();
   }else{
     const words=q.split(/\s+/);
     const items=T.filter(t=>words.every(w=>t.txt.includes(w)));
@@ -803,7 +969,7 @@ function rowH(t){return `<button class="row k-${t.cat}${done.has(t.id)?" done":"
 function topic(id){
   const i=T.findIndex(t=>t.id===id);if(i<0)return home();
   const t=T[i],c=CATS[t.cat],pv=T[i-1],nx=T[i+1];
-  let body=t.h;
+  let body=t.id==="incidentes"?`<div id="incLive">${incBodyH()}</div>`:t.h;
   if(query.trim()){const w=query.trim().replace(/[.*+?^${}()|[\]\\]/g,"\\$&");try{body=body.replace(new RegExp("(>[^<]*?)("+w+")","gi"),"$1<mark>$2</mark>")}catch(e){}}
   V.innerHTML=`<button class="back" id="bk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>Temas</button>
   <div class="k-${t.cat}">
@@ -811,7 +977,7 @@ function topic(id){
   <div class="body">${body}</div></div>
   <button class="done-btn${done.has(id)?" on":""}" id="dn">${CHECK}<span>${done.has(id)?"Repasado":"Marcar como repasado"}</span></button>
   <div class="pn">${pv?`<button id="pv"><small>Anterior</small>${pv.t}</button>`:"<span style='flex:1'></span>"}${nx?`<button class="nx" id="nx"><small>Siguiente</small>${nx.t}</button>`:"<span style='flex:1'></span>"}</div>`;
-  wireZoom(V);
+  wireZoom(V);if(t.id==="incidentes")wireInc();
   document.getElementById("bk").onclick=()=>go("");
   document.getElementById("dn").onclick=e=>{done.has(id)?done.delete(id):done.add(id);saveDone();const b=e.currentTarget;b.classList.toggle("on",done.has(id));b.querySelector("span").textContent=done.has(id)?"Repasado":"Marcar como repasado"};
   if(pv)document.getElementById("pv").onclick=()=>go("t."+pv.id);
@@ -821,7 +987,7 @@ function topic(id){
 
 function datos(){
   V.innerHTML=`<div class="pagehead"><h1>Datos clave</h1><p>Cifras, colores y nombres que suelen preguntar en la auditoría.</p></div>`+
-  DATOS.map(d=>`<section class="dsec k-${d.c}"><h2><img src="${IMG[d.i]}" alt="">${d.n}</h2><div class="kv">${d.r.map(r=>`<div><span>${r[0]}</span><b>${r[1]}</b></div>`).join("")}</div></section>`).join("");
+  DATOS.map(d=>{if(d.dyn)d.r=SD.inc.filter(r=>r.fecha).map(r=>[r.tipo+" · "+(r.area.charAt(0)+r.area.slice(1).toLowerCase())+(r.persona?" · "+r.persona:""),fmtD(r.fecha)+" ("+daysFrom(r.fecha)+" d)"]);return d}).map(d=>`<section class="dsec k-${d.c}"><h2><img src="${IMG[d.i]}" alt="">${d.n}</h2><div class="kv">${d.r.map(r=>`<div><span>${r[0]}</span><b>${r[1]}</b></div>`).join("")}</div></section>`).join("");
   window.scrollTo(0,0);
 }
 
@@ -833,10 +999,10 @@ function laminas(){
 
 // Tarjetas
 let deck=[],di=0,known=0,dcat="all";
-function newDeck(){const src=dcat==="all"?Q:Q.filter(q=>byId(q[3]).cat===dcat);deck=shuffle(src);di=0;known=0}
+function newDeck(){const QQ=Q.concat(dynQ());const src=dcat==="all"?QQ:QQ.filter(q=>byId(q[3]).cat===dcat);deck=shuffle(src);di=0;known=0}
 function tarjetas(){
   if(!deck.length)newDeck();
-  const opts=`<option value="all">Todos los temas (${Q.length})</option>`+Object.entries(CATS).map(([k,c])=>{const n=Q.filter(q=>byId(q[3]).cat===k).length;return n?`<option value="${k}"${dcat===k?" selected":""}>${c.n} (${n})</option>`:""}).join("");
+  const opts=`<option value="all">Todos los temas (${Q.length+dynQ().length})</option>`+Object.entries(CATS).map(([k,c])=>{const n=Q.concat(dynQ()).filter(q=>byId(q[3]).cat===k).length;return n?`<option value="${k}"${dcat===k?" selected":""}>${c.n} (${n})</option>`:""}).join("");
   if(di>=deck.length){
     const p=Math.round(100*known/Math.max(1,deck.length));
     V.innerHTML=`<div class="score"><div class="ring" style="--p:${p};--rc:#23803F"><div>${known}</div></div><p>de ${deck.length} tarjetas ya las sabías.</p><button class="btn" id="again">Otra ronda</button></div>`;
@@ -860,11 +1026,11 @@ function tarjetas(){
 
 // Examen
 let ex=null;
-function newExam(n){ex={qs:shuffle(Q).slice(0,n).map(q=>({q,o:shuffle([q[1],...q[2]]),a:null})),i:0,n}}
+function newExam(n){ex={qs:shuffle(Q.concat(dynQ())).slice(0,n).map(q=>({q,o:shuffle([q[1],...q[2]]),a:null})),i:0,n}}
 function examen(){
   if(!ex){
     V.innerHTML=`<div class="pagehead"><h1>Examen rápido</h1><p>Preguntas al azar de todo el resumen, con la respuesta correcta al instante.</p></div>
-    <div class="startgrid"><button class="btn" data-n="10">10 preguntas <small>~3 min</small></button><button class="btn ghost" data-n="20">20 preguntas <small>~6 min</small></button><button class="btn ghost" data-n="${Q.length}">Todas <small>${Q.length} preguntas</small></button></div>`;
+    <div class="startgrid"><button class="btn" data-n="10">10 preguntas <small>~3 min</small></button><button class="btn ghost" data-n="20">20 preguntas <small>~6 min</small></button><button class="btn ghost" data-n="999">Todas <small>${Q.length+dynQ().length} preguntas</small></button></div>`;
     V.querySelectorAll("[data-n]").forEach(b=>b.onclick=()=>{newExam(+b.dataset.n);examen()});return;
   }
   if(ex.i>=ex.qs.length){
@@ -925,7 +1091,7 @@ function applyTheme(){
 }
 document.getElementById("thm").onclick=()=>{theme=theme==="light"?"dark":"light";try{localStorage.setItem("ssmaH2.theme",theme)}catch(e){}applyTheme()};
 applyTheme();
-updProg();route();
+indexInc();updProg();route();loadSheet();
 </script>
 
 <script>if("serviceWorker" in navigator && location.protocol==="https:"){window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}))}</script>

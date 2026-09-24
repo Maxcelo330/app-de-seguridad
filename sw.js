@@ -1,6 +1,6 @@
 // Guarda la app en el celular para que funcione sin internet.
 // Al actualizar index.html, cambia la versión para que el celular descargue lo nuevo.
-const CACHE = "ssma-h2-v1";
+const CACHE = "ssma-h2-v2";
 const FILES = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./apple-touch-icon.png", "./favicon.png"];
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).then(() => self.skipWaiting()));
