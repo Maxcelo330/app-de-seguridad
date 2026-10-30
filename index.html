@@ -2406,64 +2406,39 @@ ${fig(IMG.eme, "Organigrama original del EME")}
     function lbKey(e) { if (e.key === "Escape") closeLB() }
     function closeLB() { const d = document.getElementById("lb"); if (d) d.remove(); document.removeEventListener("keydown", lbKey) }
 
-    // ---------- Datos en vivo desde Google Sheets ----------
-    const SHEET_ID = "1l1Tg7_8gbcUxF60bKogPVfYsfxYfxOxPFu0oHBUdy90";
-    const SHEET_URL = "https://docs.google.com/spreadsheets/d/" + SHEET_ID + "/edit";
-    const GID_INC = "0", GID_C2A = "421802360";
-    const gvizUrl = gid => "https://docs.google.com/spreadsheets/d/" + SHEET_ID + "/gviz/tq?tqx=out:json&headers=1&gid=" + gid + "&t=" + Date.now();
+    // ---------- Datos en vivo desde el Excel (vía data.json) ----------
+    const DATA_URL = "./data.json"; // lo actualiza el flujo de Power Automate desde el Excel de SharePoint
     const TIPOS = ["FATALIDAD", "LTI", "MTC", "FAC", "ADM"];
     const TIPO_COLOR = { FATALIDAD: "#5B0F0B", LTI: "#A51D17", MTC: "#C4550F", FAC: "#9A5C00", ADM: "#34425A" };
     const TIPO_NOMBRE = { FATALIDAD: "Fatalidad", LTI: "Lesión con tiempo perdido", MTC: "Tratamiento médico", FAC: "Primeros auxilios", ADM: "Daño material" };
 
-    function gvizParse(txt) {
-      const a = txt.indexOf("{"), b = txt.lastIndexOf("}");
-      const j = JSON.parse(txt.slice(a, b + 1));
-      if (j.status !== "ok") throw new Error("La hoja respondió con error");
-      const cols = j.table.cols.map(c => (c.label || "").trim().toUpperCase());
-      const rows = (j.table.rows || []).map(r => (r.c || []).map(c => c ? { v: c.v, f: c.f } : null));
-      return { cols, rows, types: j.table.cols.map(c => c.type) };
-    }
-    function cellDate(c) {
-      if (!c || c.v == null || c.v === "") return null;
-      const v = c.v;
-      if (typeof v === "string") {
-        let m = v.match(/^Date\((\d+),(\d+),(\d+)/);
-        if (m) return iso(+m[1], +m[2] + 1, +m[3]);
-        m = v.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})/);
-        if (m) return iso(+m[3], +m[2], +m[1]);
-        return null;
+    // data.json lo genera el flujo de Power Automate desde el Excel de SharePoint:
+    // { planta: [eventos], calidad: [eventos], at } con un evento por fila del registro.
+    const AREAS_DATA = [["planta", "PLANTA"], ["calidad", "CALIDAD"]];
+    const CLASIF = { FATALIDAD: "FATALIDAD", FAT: "FATALIDAD", LTI: "LTI", MTC: "MTC", FAC: "FAC", ADM: "ADM" };
+    const evFecha = v => { const m = String(v || "").match(/^\d{4}-\d{2}-\d{2}/); return m ? m[0] : null };
+    const evTxt = (v, vacio) => { const s = String(v == null ? "" : v).replace(/\s+/g, " ").trim(); return vacio && vacio.test(s) ? "" : s };
+    const masReciente = ev => ev.sort((a, b) => b.fecha.localeCompare(a.fecha))[0];
+    // Por cada área y tipo se queda con el evento más reciente; el último "MA" alimenta la tarjeta ambiental
+    function parseData(j) {
+      const inc = []; let env = null;
+      for (const [key, area] of AREAS_DATA) {
+        const ev = (Array.isArray(j[key]) ? j[key] : []).map(e => ({ tipo: evTxt(e.clasif).toUpperCase(), fecha: evFecha(e.fecha), detalle: evTxt(e.detalle, /^ningun[oa]?$/i), persona: evTxt(e.persona, /^nadie$/i), area: evTxt(e.area) })).filter(e => e.fecha);
+        for (const t of TIPOS) {
+          const last = masReciente(ev.filter(e => CLASIF[e.tipo] === t));
+          inc.push({ area, tipo: t, fecha: last ? last.fecha : null, detalle: last ? last.detalle : "", persona: last ? last.persona : "" });
+        }
+        const ma = masReciente(ev.filter(e => e.tipo === "MA"));
+        if (ma && (!env || ma.fecha > env.fecha)) env = { fecha: ma.fecha, area: ma.area, detalle: ma.detalle };
       }
-      if (typeof v === "number" && v > 30000 && v < 80000) { const d = new Date(Date.UTC(1899, 11, 30) + v * 864e5); return iso(d.getUTCFullYear(), d.getUTCMonth() + 1, d.getUTCDate()) }
-      return null;
-    }
-    function iso(y, m, d) { return y + "-" + String(m).padStart(2, "0") + "-" + String(d).padStart(2, "0") }
-    const txt = c => c && c.v != null ? String(c.v).replace(/\s+/g, " ").trim() : "";
-    function colIdx(cols, names, fallback) { for (const n of names) { const i = cols.indexOf(n); if (i >= 0) return i } return fallback }
-
-    function parseInc(t) {
-      const iA = colIdx(t.cols, ["AREA", "ÁREA"], 0), iT = colIdx(t.cols, ["INCIDENTE", "TIPO"], 1), iF = colIdx(t.cols, ["ULTIMA FECHA", "ÚLTIMA FECHA", "FECHA"], 2),
-        iD = colIdx(t.cols, ["DETALLE"], 4), iP = colIdx(t.cols, ["PERSONA"], 5);
-      const out = [];
-      for (const r of t.rows) {
-        const area = txt(r[iA]).toUpperCase(), tipo = txt(r[iT]).toUpperCase();
-        if (!area || !tipo || area === "AREA") continue;
-        const det = txt(r[iD]), per = txt(r[iP]);
-        out.push({ area, tipo, fecha: cellDate(r[iF]), detalle: /^ningun[oa]?$/i.test(det) ? "" : det, persona: /^nadie$/i.test(per) ? "" : per });
-      }
-      return out;
-    }
-    function parseC2A(t) {
-      const iN = colIdx(t.cols, ["N", "N°", "NRO"], 0), iC = colIdx(t.cols, ["CALL TO ACTION"], 1), iP = colIdx(t.cols, ["PERSONA"], 2), iF = colIdx(t.cols, ["ULTIMA FECHA", "ÚLTIMA FECHA", "FECHA"], 3);
-      const out = [];
-      for (const r of t.rows) { const c = txt(r[iC]); if (!c || c.toUpperCase() === "CALL TO ACTION") continue; out.push({ n: txt(r[iN]), titulo: c, persona: txt(r[iP]), fecha: cellDate(r[iF]) }) }
-      return out;
+      return { inc, env };
     }
 
 
     // Estado de los datos del Excel: copia incluida → copia guardada → en vivo
-    const SNAP = { "inc": [{ "area": "PLANTA", "tipo": "FATALIDAD", "fecha": null, "detalle": "", "persona": "" }, { "area": "PLANTA", "tipo": "LTI", "fecha": "2026-02-09", "detalle": "Atrapamiento de pie con transpaleta en Bodegas CD La Paz, 2do metatarso pie derecho", "persona": "Heriberto Quispe Flores" }, { "area": "PLANTA", "tipo": "MTC", "fecha": "2026-09-17", "detalle": "Atrixionamiento de pie en picking temporal de bodegas planta", "persona": "Dennis Froilan Patsi Tancara" }, { "area": "PLANTA", "tipo": "FAC", "fecha": "2026-09-23", "detalle": "Torcedura de tobillo, manipulador de bodegas", "persona": "Cristian Quispe" }, { "area": "PLANTA", "tipo": "ADM", "fecha": "2026-09-14", "detalle": "Daño en paneles cobertores de pilar de puerta de ingreso, camión 2842 GBK al descargar equipos de frío (Gerson Ramirez)", "persona": "Camión placa 2842 GBK" }, { "area": "CALIDAD", "tipo": "FATALIDAD", "fecha": null, "detalle": "", "persona": "" }, { "area": "CALIDAD", "tipo": "LTI", "fecha": "2023-10-26", "detalle": "Contusión rodilla derecha", "persona": "Ruddy Contreras" }, { "area": "CALIDAD", "tipo": "MTC", "fecha": "2023-10-26", "detalle": "Contusión rodilla, golpes frontales.", "persona": "Gloria Mamani, Sergio Alarcón, Carlos Lopez" }, { "area": "CALIDAD", "tipo": "FAC", "fecha": "2024-04-02", "detalle": "Golpe en lado derecho a la altura de la costilla", "persona": "Genny Choqueticlla" }, { "area": "CALIDAD", "tipo": "ADM", "fecha": "2026-05-03", "detalle": "Rotura de cupla del grifo de lavamanos", "persona": "Weimar Villegas" }], "c2a": [], "at": "2026-09-24" };
-    let SD = { inc: SNAP.inc, c2a: SNAP.c2a, at: null, src: "snap" };
-    try { const c = JSON.parse(localStorage.getItem("ssmaH2.sheet") || "null"); if (c && c.inc && c.inc.length) { SD = { inc: c.inc, c2a: c.c2a || [], at: c.at, src: "cache" } } } catch (e) { }
+    const SNAP = { "inc": [{ "area": "PLANTA", "tipo": "FATALIDAD", "fecha": null, "detalle": "", "persona": "" }, { "area": "PLANTA", "tipo": "LTI", "fecha": "2026-02-09", "detalle": "Fractura de segundo metatarsiano en picking", "persona": "Heriberto Quispe Flores" }, { "area": "PLANTA", "tipo": "MTC", "fecha": "2026-09-17", "detalle": "Atrapamiento de pie derecho en picking por empujón con pallet", "persona": "Cristhian Quispe Lecoña" }, { "area": "PLANTA", "tipo": "FAC", "fecha": "2026-10-21", "detalle": "Golpe a dedo pulgar de operador Guido Callisaya contra tope en lavadora K108", "persona": "Guido Callisaya" }, { "area": "PLANTA", "tipo": "ADM", "fecha": "2026-10-24", "detalle": "Caida de Canastillo de Preformas, Daño en Canastillo y el contenido", "persona": "Operador montacarga" }, { "area": "CALIDAD", "tipo": "FATALIDAD", "fecha": null, "detalle": "", "persona": "" }, { "area": "CALIDAD", "tipo": "LTI", "fecha": "2023-10-28", "detalle": "Contusión de rodilla derecha", "persona": "Ruddy Contreras" }, { "area": "CALIDAD", "tipo": "MTC", "fecha": "2023-10-28", "detalle": "Contusión de rodilla y golpes frontales", "persona": "Gloria Mamani, Sergio Alarcón, Carlos Lopez" }, { "area": "CALIDAD", "tipo": "FAC", "fecha": "2024-04-04", "detalle": "Golpe en lado derecho a la altura de la costilla", "persona": "Genny Choqueticlla" }, { "area": "CALIDAD", "tipo": "ADM", "fecha": "2026-05-05", "detalle": "Rotura de cupla del grifo de lavamanos", "persona": "Weimar Villegas" }], "c2a": [], "env": { "fecha": "2026-09-05", "area": "BODEGAS", "detalle": "Derrame de líquido hidráulico en playa P4, Nissan 8" }, "at": "2026-10-30" };
+    let SD = { inc: SNAP.inc, c2a: SNAP.c2a, env: SNAP.env, at: null, src: "snap" };
+    try { const c = JSON.parse(localStorage.getItem("ssmaH2.sheet") || "null"); if (c && c.inc && c.inc.length) { SD = { inc: c.inc, c2a: c.c2a || [], env: c.env || SNAP.env, at: c.at, src: "cache" } } } catch (e) { }
     let area = "PLANTA", loading = false, lastErr = "";
     function localToday() { const n = new Date(); return Date.UTC(n.getFullYear(), n.getMonth(), n.getDate()) }
     function daysFrom(isoD) { if (!isoD) return null; const [y, m, d] = isoD.split("-").map(Number); return Math.max(0, Math.round((localToday() - Date.UTC(y, m - 1, d)) / 864e5) - 1) }
@@ -2473,18 +2448,18 @@ ${fig(IMG.eme, "Organigrama original del EME")}
     function rec(a, t) { return SD.inc.find(r => r.area === a && r.tipo === t) }
     function statusTxt() {
       if (loading) return "Actualizando desde la base de datos…";
-      if (SD.src === "live") return "En vivo desde Base de datos Calidad · " + fmtAt(SD.at);
-      if (SD.src === "cache") return "Última copia guardada · " + fmtAt(SD.at) + (lastErr ? " · sin conexión a la hoja" : "");
-      return "Copia del Excel al " + fmtD(SNAP.at) + (lastErr ? " · no se pudo leer la hoja" : "");
+      if (SD.src === "live") return "Base de datos Calidad · actualizado " + fmtAt(SD.at);
+      if (SD.src === "cache") return "Última copia guardada · " + fmtAt(SD.at) + (lastErr ? " · sin conexión a la base de datos" : "");
+      return "Copia del Excel al " + fmtD(SNAP.at) + (lastErr ? " · no se pudo leer la base de datos" : "");
     }
     async function loadSheet() {
       if (loading) return; loading = true; lastErr = ""; refreshLive();
       try {
-        const [a, b] = await Promise.all([fetch(gvizUrl(GID_INC), { cache: "no-store" }).then(r => { if (!r.ok) throw new Error(r.status); return r.text() }),
-        fetch(gvizUrl(GID_C2A), { cache: "no-store" }).then(r => r.ok ? r.text() : "").catch(() => "")]);
-        const inc = parseInc(gvizParse(a)); if (!inc.length) throw new Error("Hoja vacía");
-        let c2a = []; try { if (b) c2a = parseC2A(gvizParse(b)) } catch (e) { }
-        SD = { inc, c2a, at: Date.now(), src: "live" };
+        const j = await fetch(DATA_URL + "?t=" + Date.now(), { cache: "no-store" }).then(r => { if (!r.ok) throw new Error(r.status); return r.json() });
+        const { inc, env } = parseData(j); if (!inc.some(r => r.fecha)) throw new Error("Datos vacíos");
+        // "at" trae hasta 7 decimales de segundo; se recorta a 3 para que todos los navegadores lo lean
+        const at = Date.parse(String(j.at || "").replace(/(\.\d{3})\d+/, "$1"));
+        SD = { inc, c2a: [], env: env || SNAP.env, at: isNaN(at) ? Date.now() : at, src: "live" };
         try { localStorage.setItem("ssmaH2.sheet", JSON.stringify(SD)) } catch (e) { }
       } catch (e) { lastErr = String(e && e.message || e) }
       loading = false; indexInc(); refreshLive();
@@ -2533,9 +2508,13 @@ ${fig(IMG.eme, "Organigrama original del EME")}
       if (SD.c2a.length) { h += `<h3>Call to Action del Excel</h3>` + SD.c2a.map(c => `<div class="card"><span class="pill">${esc(c.n || "")}</span> ${c.fecha ? `<span class="mono">${fmtD(c.fecha)}</span>` : ""}<h4>${esc(c.titulo)}</h4>${c.persona ? `<p>${esc(c.persona)}</p>` : ""}</div>`).join("") }
       h += `<div class="key">LTI = lesión con tiempo perdido · MTC = caso con tratamiento médico · FAC = primeros auxilios · ADM = accidente con daño material.</div>
   <h3>Último incidente ambiental LPZ</h3>
-  <div class="card"><span class="pill" style="--pc:#9A5C00">MENOR</span> <b>(Bodegas)</b> Fuga de líquido hidráulico de montacargas <b>Nissan 8</b> · <span class="mono">05/09/2026</span></div>
-  <p class="src">Los datos de incidentes salen de la base de datos de Calidad. Al editar la hoja, toca el botón de actualizar.</p>`;
+  ${envH()}
+  <p class="src">Los datos de incidentes salen de la base de datos de Calidad (Excel) y se sincronizan cada mañana. Toca el botón de actualizar para traer lo último.</p>`;
       return h;
+    }
+    function envH() {
+      const e = SD.env || SNAP.env;
+      return `<div class="card"><span class="pill" style="--pc:#9A5C00">MA</span> ${e.area ? `<b>(${esc(e.area.charAt(0) + e.area.slice(1).toLowerCase())})</b> ` : ""}${esc(e.detalle)} · <span class="mono">${fmtD(e.fecha)}</span></div>`;
     }
     function wireInc() { const b = document.getElementById("rload2"); if (b) b.onclick = loadSheet }
     function indexInc() { const t = T.find(x => x.id === "incidentes"); if (t) t.txt = norm(t.t + " " + t.s + " " + SD.inc.map(r => r.area + " " + r.tipo + " " + r.persona + " " + r.detalle).join(" ") + " ambiental nissan montacargas") }
