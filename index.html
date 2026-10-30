@@ -1881,7 +1881,7 @@
           <path d="M12 2.5l8 3v6c0 5-3.4 8.6-8 10-4.6-1.4-8-5-8-10v-6z" />
           <path d="M8.5 12l2.5 2.5 4.5-5" stroke-linecap="round" />
         </svg></div>
-      <div class="brand"><b>SSMA CALIDAD · H2 2026</b><span>Repaso · EMBOL Planta La Paz</span></div>
+      <div class="brand"><b>SSMA CALIDAD · H2 2026</b><span>Repaso · EMBOL Planta La Paz)</span></div>
       <button class="thm" id="thm" aria-label="Cambiar a fondo oscuro" title="Fondo claro / oscuro"></button>
       <div class="prog"><span class="num" id="pNum">0/0</span><br>repasados<div class="bar"><i id="pBar"></i></div>
       </div>
@@ -2472,8 +2472,8 @@ ${fig(IMG.eme, "Organigrama original del EME")}
     function areas() { return [...new Set(SD.inc.map(r => r.area))] }
     function rec(a, t) { return SD.inc.find(r => r.area === a && r.tipo === t) }
     function statusTxt() {
-      if (loading) return "Actualizando desde Google Sheets…";
-      if (SD.src === "live") return "En vivo desde Google Sheets · " + fmtAt(SD.at);
+      if (loading) return "Actualizando desde la base de datos…";
+      if (SD.src === "live") return "En vivo desde Base de datos Calidad · " + fmtAt(SD.at);
       if (SD.src === "cache") return "Última copia guardada · " + fmtAt(SD.at) + (lastErr ? " · sin conexión a la hoja" : "");
       return "Copia del Excel al " + fmtD(SNAP.at) + (lastErr ? " · no se pudo leer la hoja" : "");
     }
@@ -2534,7 +2534,7 @@ ${fig(IMG.eme, "Organigrama original del EME")}
       h += `<div class="key">LTI = lesión con tiempo perdido · MTC = caso con tratamiento médico · FAC = primeros auxilios · ADM = accidente con daño material.</div>
   <h3>Último incidente ambiental LPZ</h3>
   <div class="card"><span class="pill" style="--pc:#9A5C00">MENOR</span> <b>(Bodegas)</b> Fuga de líquido hidráulico de montacargas <b>Nissan 8</b> · <span class="mono">05/09/2026</span></div>
-  <p class="src">Los datos de incidentes salen de la hoja de Google Sheets. Al editar la hoja, toca el botón de actualizar.</p>`;
+  <p class="src">Los datos de incidentes salen de la base de datos de Calidad. Al editar la hoja, toca el botón de actualizar.</p>`;
       return h;
     }
     function wireInc() { const b = document.getElementById("rload2"); if (b) b.onclick = loadSheet }
