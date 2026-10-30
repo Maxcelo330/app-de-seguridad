@@ -2466,7 +2466,7 @@ ${fig(IMG.eme, "Organigrama original del EME")}
     try { const c = JSON.parse(localStorage.getItem("ssmaH2.sheet") || "null"); if (c && c.inc && c.inc.length) { SD = { inc: c.inc, c2a: c.c2a || [], at: c.at, src: "cache" } } } catch (e) { }
     let area = "PLANTA", loading = false, lastErr = "";
     function localToday() { const n = new Date(); return Date.UTC(n.getFullYear(), n.getMonth(), n.getDate()) }
-    function daysFrom(isoD) { if (!isoD) return null; const [y, m, d] = isoD.split("-").map(Number); return Math.max(0, Math.round((localToday() - Date.UTC(y, m - 1, d)) / 864e5)) }
+    function daysFrom(isoD) { if (!isoD) return null; const [y, m, d] = isoD.split("-").map(Number); return Math.max(0, Math.round((localToday() - Date.UTC(y, m - 1, d)) / 864e5) - 1) }
     function fmtD(isoD) { if (!isoD) return "—"; const [y, m, d] = isoD.split("-"); return d + "/" + m + "/" + y }
     function fmtAt(ts) { const d = new Date(ts); return d.toLocaleDateString("es-BO", { day: "2-digit", month: "2-digit" }) + " " + d.toLocaleTimeString("es-BO", { hour: "2-digit", minute: "2-digit" }) }
     function areas() { return [...new Set(SD.inc.map(r => r.area))] }
